@@ -16,10 +16,10 @@ import pkg from '../../package.json';
 interface depexport {
     check: () => Promise<void>;
     checkModule(moduleName : string) : Promise<boolean>;
-    parseModuleData(moduleName : string, pkgData : string) : string | null;
+    parseModuleData(moduleName : string, pkgData : string) : semver.SemVer | null;
     // have to leave moduleData as any type as replacing with semver.SemVer causes file
     // to not compile due to missing fields
-    doesSatisfy(moduleData : any, packageJSONVersion : string) : boolean;
+    doesSatisfy(moduleData : semver.SemVer, packageJSONVersion : string) : boolean;
 }
 const Dependencies : depexport = module.exports as depexport;
 
@@ -42,10 +42,10 @@ Dependencies.check = async function () {
 
 Dependencies.checkModule = async function (moduleName) {
     try {
-        let pkgData = await fs.promises.readFile(path.join(paths.nodeModules, moduleName, 'package.json'), 'utf8');
-        pkgData = Dependencies.parseModuleData(moduleName, pkgData);
+        const pkgData = await fs.promises.readFile(path.join(paths.nodeModules, moduleName, 'package.json'), 'utf8');
+        const moduleData = Dependencies.parseModuleData(moduleName, pkgData);
 
-        const satisfies = Dependencies.doesSatisfy(pkgData, pkg.dependencies[moduleName] as string);
+        const satisfies = Dependencies.doesSatisfy(moduleData, pkg.dependencies[moduleName] as string);
         return satisfies;
     } catch (err) {
         // The next line calls a function in a module that has not been updated to TS yet
@@ -67,25 +67,20 @@ Dependencies.parseModuleData = function (moduleName, pkgData) {
         depsMissing = true;
         return null;
     }
-    return pkgData;
+    const moduleData = new semver.SemVer(pkgData);
+    return moduleData;
 };
 
-Dependencies.doesSatisfy = function (moduleData, packageJSONVersion) {
+Dependencies.doesSatisfy = function (moduleData : semver.SemVer, packageJSONVersion) {
     if (!moduleData) {
         return false;
     }
     const versionOk : boolean = !semver.validRange(packageJSONVersion) ||
-    // The next line calls a function in a module that has not been updated to TS yet
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        semver.satisfies(moduleData.version as string, packageJSONVersion);
-    // The next line calls a function in a module that has not been updated to TS yet
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const githubRepo : boolean = (moduleData._resolved && moduleData._resolved.includes('//github.com')) as boolean;
+        semver.satisfies(moduleData.version, packageJSONVersion);
+    const githubRepo : boolean = (moduleData._resolved && moduleData._resolved.includes('//github.com'));
     const satisfies : boolean = versionOk || githubRepo;
     if (!satisfies) {
-        // The next line calls a function in a module that has not been updated to TS yet
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        winston.warn(`[${chalk.yellow('outdated')}] ${chalk.bold(moduleData.name)} installed v${moduleData.version as string}, package.json requires ${packageJSONVersion}\n`);
+        winston.warn(`[${chalk.yellow('outdated')}] ${chalk.bold(moduleData.name)} installed v${moduleData.version}, package.json requires ${packageJSONVersion}\n`);
         depsOutdated = true;
     }
     return satisfies;

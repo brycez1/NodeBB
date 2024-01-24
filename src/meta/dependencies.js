@@ -39,9 +39,9 @@ Dependencies.check = function () {
 Dependencies.checkModule = function (moduleName) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            let pkgData = yield fs_1.default.promises.readFile(path_1.default.join(constants_1.paths.nodeModules, moduleName, 'package.json'), 'utf8');
-            pkgData = Dependencies.parseModuleData(moduleName, pkgData);
-            const satisfies = Dependencies.doesSatisfy(pkgData, package_json_1.default.dependencies[moduleName]);
+            const pkgData = yield fs_1.default.promises.readFile(path_1.default.join(constants_1.paths.nodeModules, moduleName, 'package.json'), 'utf8');
+            const moduleData = Dependencies.parseModuleData(moduleName, pkgData);
+            const satisfies = Dependencies.doesSatisfy(moduleData, package_json_1.default.dependencies[moduleName]);
             return satisfies;
         }
         catch (err) {
@@ -65,23 +65,18 @@ Dependencies.parseModuleData = function (moduleName, pkgData) {
         depsMissing = true;
         return null;
     }
-    return pkgData;
+    const moduleData = new semver_1.default.SemVer(pkgData);
+    return moduleData;
 };
 Dependencies.doesSatisfy = function (moduleData, packageJSONVersion) {
     if (!moduleData) {
         return false;
     }
     const versionOk = !semver_1.default.validRange(packageJSONVersion) ||
-        // The next line calls a function in a module that has not been updated to TS yet
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         semver_1.default.satisfies(moduleData.version, packageJSONVersion);
-    // The next line calls a function in a module that has not been updated to TS yet
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     const githubRepo = (moduleData._resolved && moduleData._resolved.includes('//github.com'));
     const satisfies = versionOk || githubRepo;
     if (!satisfies) {
-        // The next line calls a function in a module that has not been updated to TS yet
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         winston_1.default.warn(`[${chalk_1.default.yellow('outdated')}] ${chalk_1.default.bold(moduleData.name)} installed v${moduleData.version}, package.json requires ${packageJSONVersion}\n`);
         depsOutdated = true;
     }
