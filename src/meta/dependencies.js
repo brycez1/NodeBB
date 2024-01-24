@@ -40,13 +40,13 @@ Dependencies.checkModule = function (moduleName) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             let pkgData = yield fs_1.default.promises.readFile(path_1.default.join(constants_1.paths.nodeModules, moduleName, 'package.json'), 'utf8');
-            pkgData = Dependencies.parseModuleData(moduleName, pkgData) || '';
+            pkgData = Dependencies.parseModuleData(moduleName, pkgData);
             const satisfies = Dependencies.doesSatisfy(pkgData, package_json_1.default.dependencies[moduleName]);
             return satisfies;
         }
         catch (err) {
             // The next line calls a function in a module that has not been updated to TS yet
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             if (err.code === 'ENOENT' && constants_1.pluginNamePattern.test(moduleName)) {
                 winston_1.default.warn(`[meta/dependencies] Bundled plugin ${moduleName} not found, skipping dependency check.`);
                 return true;
