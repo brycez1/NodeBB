@@ -20,6 +20,8 @@ const chalk_1 = __importDefault(require("chalk"));
 const constants_1 = require("../constants");
 // added "resolveJsonModule": true to tsconfig.json
 const package_json_1 = __importDefault(require("../../package.json"));
+class SemVer2 extends semver_1.default.SemVer {
+}
 const Dependencies = module.exports;
 let depsMissing = false;
 let depsOutdated = false;
@@ -65,7 +67,7 @@ Dependencies.parseModuleData = function (moduleName, pkgData) {
         depsMissing = true;
         return null;
     }
-    const moduleData = new semver_1.default.SemVer(pkgData);
+    const moduleData = new SemVer2(pkgData);
     return moduleData;
 };
 Dependencies.doesSatisfy = function (moduleData, packageJSONVersion) {

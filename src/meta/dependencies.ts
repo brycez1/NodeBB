@@ -13,13 +13,21 @@ import { paths, pluginNamePattern } from '../constants';
 // added "resolveJsonModule": true to tsconfig.json
 import pkg from '../../package.json';
 
+type resolveType = {
+    includes(uri: string) : boolean;
+}
+
+class SemVer2 extends semver.SemVer {
+    _resolved?: resolveType;
+
+    name: string;
+}
+
 interface depexport {
     check: () => Promise<void>;
     checkModule(moduleName : string) : Promise<boolean>;
-    parseModuleData(moduleName : string, pkgData : string) : semver.SemVer | null;
-    // have to leave moduleData as any type as replacing with semver.SemVer causes file
-    // to not compile due to missing fields
-    doesSatisfy(moduleData : semver.SemVer, packageJSONVersion : string) : boolean;
+    parseModuleData(moduleName : string, pkgData : string) : SemVer2 | null;
+    doesSatisfy(moduleData : SemVer2, packageJSONVersion : string) : boolean;
 }
 const Dependencies : depexport = module.exports as depexport;
 
@@ -67,11 +75,11 @@ Dependencies.parseModuleData = function (moduleName, pkgData) {
         depsMissing = true;
         return null;
     }
-    const moduleData = new semver.SemVer(pkgData);
+    const moduleData = new SemVer2(pkgData);
     return moduleData;
 };
 
-Dependencies.doesSatisfy = function (moduleData : semver.SemVer, packageJSONVersion) {
+Dependencies.doesSatisfy = function (moduleData, packageJSONVersion) {
     if (!moduleData) {
         return false;
     }
