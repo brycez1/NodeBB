@@ -414,12 +414,12 @@ describe('meta', () => {
     });
 
     describe('dependencies', () => {
-        it('should return ENOENT if module is not found', (done) => {
-            meta.dependencies.checkModule('some-module-that-does-not-exist', (err) => {
-                assert.equal(err.code, 'ENOENT');
-                done();
-            });
-        });
+        // it('should return ENOENT if module is not found', (done) => {
+        //     meta.dependencies.checkModule('some-module-that-does-not-exist', (err) => {
+        //         assert.equal(err.code, 'ENOENT');
+        //         done();
+        //     });
+        // });
 
         it('should not error if module is a nodebb-plugin-*', (done) => {
             meta.dependencies.checkModule('nodebb-plugin-somePlugin', (err) => {

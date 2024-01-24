@@ -50,7 +50,8 @@ Dependencies.checkModule = async function (moduleName) {
     } catch (err) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (err.code === 'ENOENT' && pluginNamePattern.test(moduleName)) {
+        const message : string = err.code as string;
+        if (message === 'ENOENT' && pluginNamePattern.test(moduleName)) {
             winston.warn(`[meta/dependencies] Bundled plugin ${moduleName} not found, skipping dependency check.`);
             return true;
         }
@@ -73,11 +74,10 @@ Dependencies.doesSatisfy = function (moduleData, packageJSONVersion) {
     if (!moduleData) {
         return false;
     }
+    const versionOk : boolean = !semver.validRange(packageJSONVersion) ||
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const version_name : string = moduleData.version as string;
-    const versionOk : boolean = !semver.validRange(packageJSONVersion) ||
-        semver.satisfies(version_name, packageJSONVersion);
+        semver.satisfies(moduleData.version as string, packageJSONVersion);
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     const githubRepo : boolean = (moduleData._resolved && moduleData._resolved.includes('//github.com')) as boolean;
@@ -85,7 +85,7 @@ Dependencies.doesSatisfy = function (moduleData, packageJSONVersion) {
     if (!satisfies) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        winston.warn(`[${chalk.yellow('outdated')}] ${chalk.bold(moduleData.name)} installed v${version_name}, package.json requires ${packageJSONVersion}\n`);
+        winston.warn(`[${chalk.yellow('outdated')}] ${chalk.bold(moduleData.name)} installed v${moduleData.version as string}, package.json requires ${packageJSONVersion}\n`);
         depsOutdated = true;
     }
     return satisfies;

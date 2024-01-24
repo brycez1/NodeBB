@@ -47,7 +47,8 @@ Dependencies.checkModule = function (moduleName) {
         catch (err) {
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            if (err.code === 'ENOENT' && constants_1.pluginNamePattern.test(moduleName)) {
+            const message = err.code;
+            if (message === 'ENOENT' && constants_1.pluginNamePattern.test(moduleName)) {
                 winston_1.default.warn(`[meta/dependencies] Bundled plugin ${moduleName} not found, skipping dependency check.`);
                 return true;
             }
@@ -70,11 +71,10 @@ Dependencies.doesSatisfy = function (moduleData, packageJSONVersion) {
     if (!moduleData) {
         return false;
     }
-    // The next line calls a function in a module that has not been updated to TS yet
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const version_name = moduleData.version;
     const versionOk = !semver_1.default.validRange(packageJSONVersion) ||
-        semver_1.default.satisfies(version_name, packageJSONVersion);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        semver_1.default.satisfies(moduleData.version, packageJSONVersion);
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     const githubRepo = (moduleData._resolved && moduleData._resolved.includes('//github.com'));
@@ -82,7 +82,7 @@ Dependencies.doesSatisfy = function (moduleData, packageJSONVersion) {
     if (!satisfies) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        winston_1.default.warn(`[${chalk_1.default.yellow('outdated')}] ${chalk_1.default.bold(moduleData.name)} installed v${version_name}, package.json requires ${packageJSONVersion}\n`);
+        winston_1.default.warn(`[${chalk_1.default.yellow('outdated')}] ${chalk_1.default.bold(moduleData.name)} installed v${moduleData.version}, package.json requires ${packageJSONVersion}\n`);
         depsOutdated = true;
     }
     return satisfies;
